@@ -4,6 +4,11 @@ import android.content.Context
 import org.json.JSONArray
 import org.json.JSONObject
 
+private object DateFormatter {
+    fun now(): String = java.text.SimpleDateFormat("d MMM HH:mm:ss", java.util.Locale.getDefault())
+        .format(java.util.Date())
+}
+
 /** Rules and the blocked-call log, kept in private SharedPreferences as JSON. */
 class Store(context: Context) {
     private val prefs = context.applicationContext
@@ -38,6 +43,13 @@ class Store(context: Context) {
         prefs.edit().putString(KEY_LOG, arr.toString()).apply()
     }
 
+    /** Diagnostic: what the last screened call looked like and what we did. */
+    fun lastSeen(): String? = prefs.getString(KEY_LAST, null)
+
+    fun setLastSeen(text: String) {
+        prefs.edit().putString(KEY_LAST, DateFormatter.now() + "  " + text).apply()
+    }
+
     fun clearLog() = synchronized(lock) { prefs.edit().remove(KEY_LOG).apply() }
 
     private fun saveRulesLocked(rules: List<Rule>) {
@@ -50,6 +62,7 @@ class Store(context: Context) {
         val lock = Any()
         const val KEY_RULES = "rules"
         const val KEY_LOG = "log"
+        const val KEY_LAST = "last_seen"
         const val MAX_LOG = 200
     }
 }

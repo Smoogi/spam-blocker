@@ -12,9 +12,11 @@ class ScreeningService : CallScreeningService() {
         try {
             val incoming = details.callDirection == Call.Details.DIRECTION_INCOMING
             val number = details.handle?.schemeSpecificPart?.let { Uri.decode(it) }
+            val store = Store(this)
             if (incoming && !number.isNullOrBlank()) {
-                val store = Store(this)
-                val rule = RuleMatcher.firstMatch(store.rules(), number)
+                val rule = CallNumbers.firstMatch(this, store.rules(), number)
+                store.setLastSeen("$number -> " + CallNumbers.candidates(this, number).joinToString(" / ") +
+                    if (rule != null) " : BLOCKED" else " : allowed")
                 if (rule != null) {
                     // Reject silently; the call still shows up in the phone's call log.
                     response.setDisallowCall(true)
@@ -22,6 +24,10 @@ class ScreeningService : CallScreeningService() {
                         .setSkipNotification(true)
                     store.addLog(LogEntry(number, rule.pattern, System.currentTimeMillis()))
                 }
+            } else {
+                store.setLastSeen(
+                    "incoming=$incoming, number=" + (number ?: "hidden / none") + " : allowed",
+                )
             }
         } catch (_: Exception) {
             // Never block a call because of a bug: fall through and allow it.
