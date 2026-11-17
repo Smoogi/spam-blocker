@@ -7,11 +7,12 @@
     <application
         android:allowBackup="false"
         android:label="Spam Blocker"
-        android:theme="@android:style/Theme.DeviceDefault.DayNight">
+        android:theme="@style/AppTheme">
 
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

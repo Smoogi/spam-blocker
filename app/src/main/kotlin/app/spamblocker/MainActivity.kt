@@ -2,7 +2,10 @@ package app.spamblocker
 
 import android.app.Activity
 import android.app.role.RoleManager
+import android.content.res.Configuration
+import android.graphics.Insets
 import android.graphics.Typeface
+import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.InputType
@@ -10,6 +13,8 @@ import android.text.TextWatcher
 import android.text.format.DateFormat
 import android.view.Gravity
 import android.view.View
+import android.view.WindowInsets
+import android.view.WindowInsetsController
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -38,6 +43,7 @@ class MainActivity : Activity() {
         store = Store(this)
         roles = getSystemService(RoleManager::class.java)
         setContentView(buildUi())
+        fixBarIcons()
     }
 
     override fun onResume() {
@@ -120,7 +126,38 @@ class MainActivity : Activity() {
         logBox = column()
         root.addView(logBox)
 
-        return ScrollView(this).apply { addView(root) }
+        return ScrollView(this).apply {
+            addView(root)
+            clipToPadding = false
+            // Android 15+ draws edge-to-edge: keep content clear of the status bar,
+            // navigation bar and the keyboard, so fields stay visible while typing.
+            setOnApplyWindowInsetsListener { v, insets ->
+                val pad = barInsets(insets)
+                v.setPadding(pad.left, pad.top, pad.right, pad.bottom)
+                WindowInsets.CONSUMED
+            }
+        }
+    }
+
+    private fun barInsets(insets: WindowInsets): Insets =
+        if (Build.VERSION.SDK_INT >= 30) {
+            insets.getInsets(WindowInsets.Type.systemBars() or WindowInsets.Type.ime())
+        } else {
+            @Suppress("DEPRECATION")
+            Insets.of(
+                insets.systemWindowInsetLeft, insets.systemWindowInsetTop,
+                insets.systemWindowInsetRight, insets.systemWindowInsetBottom,
+            )
+        }
+
+    /** Dark status/navigation icons on the light theme (they came out white on white). */
+    private fun fixBarIcons() {
+        val night = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
+            Configuration.UI_MODE_NIGHT_YES
+        if (night || Build.VERSION.SDK_INT < 30) return
+        val light = WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or
+            WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
+        window.insetsController?.setSystemBarsAppearance(light, light)
     }
 
     // ---- State -> views --------------------------------------------------
