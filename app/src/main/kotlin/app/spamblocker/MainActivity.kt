@@ -1,6 +1,8 @@
 package app.spamblocker
 
+import android.Manifest
 import android.app.Activity
+import android.content.pm.PackageManager
 import android.app.role.RoleManager
 import android.content.res.Configuration
 import android.graphics.Insets
@@ -32,6 +34,8 @@ class MainActivity : Activity() {
     private lateinit var status: TextView
     private lateinit var enableButton: Button
     private lateinit var lastSeen: TextView
+    private lateinit var contactsNote: TextView
+    private lateinit var contactsButton: Button
     private lateinit var rulesBox: LinearLayout
     private lateinit var addInput: EditText
     private lateinit var addError: TextView
@@ -75,6 +79,18 @@ class MainActivity : Activity() {
             }
         }
         root.addView(enableButton)
+        contactsNote = text("Android only passes this app calls from numbers that are NOT in your " +
+            "contacts, unless it has contacts access. The app never reads your contacts; the " +
+            "permission just makes Android send it every call. Without it, calls from saved " +
+            "contacts get through.", 13f).apply { setPadding(0, dp(8), 0, 0) }
+        contactsButton = Button(this).apply {
+            text = "Allow contacts access"
+            setOnClickListener {
+                requestPermissions(arrayOf(Manifest.permission.READ_CONTACTS), 2)
+            }
+        }
+        root.addView(contactsNote)
+        root.addView(contactsButton)
         lastSeen = text("", 12f).apply { typeface = Typeface.MONOSPACE; setPadding(0, dp(8), 0, 0) }
         root.addView(lastSeen)
 
@@ -170,6 +186,10 @@ class MainActivity : Activity() {
         status.text = if (held) "Blocking is ON. Matching calls are rejected silently."
         else "Blocking is OFF. Allow this app as your call screening app."
         enableButton.visibility = if (held) View.GONE else View.VISIBLE
+        val contactsOk = checkSelfPermission(Manifest.permission.READ_CONTACTS) ==
+            PackageManager.PERMISSION_GRANTED
+        contactsNote.visibility = if (contactsOk) View.GONE else View.VISIBLE
+        contactsButton.visibility = if (contactsOk) View.GONE else View.VISIBLE
         lastSeen.text = "Last call seen by the app:\n" + (store.lastSeen()
             ?: "none yet. If a call comes in and this stays empty, blocking is not switched on.")
 

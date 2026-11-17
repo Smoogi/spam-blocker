@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- No permissions: call screening is granted through the system role dialog.
-         No INTERNET either; everything stays on the phone. -->
+    <!-- Android only sends a call screening app calls from numbers that are NOT saved
+         contacts, unless the app holds READ_CONTACTS. The app never reads contacts; the
+         permission only makes Android hand it every call. No INTERNET: all on the phone. -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <application
         android:allowBackup="false"

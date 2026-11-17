@@ -10,8 +10,8 @@ android {
         applicationId = "app.spamblocker"
         minSdk = 29 // call screening role needs Android 10
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 4
+        versionName = "1.0.3"
     }
 
     buildTypes {
